@@ -1,12 +1,13 @@
 #mile stone 2
 #Exploratory Data Analysis (EDA) on the home_info table
-
+from flask import Flask, render_template
 import psycopg2
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import IsolationForest
 from sklearn.impute import SimpleImputer
+
 
 conn = psycopg2.connect(host="localhost",dbname="zeroDown",user="postgres",password="mahizha",port=5432)
 cur = conn.cursor()
