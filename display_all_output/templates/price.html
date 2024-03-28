@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Estimation</title>
+</head>
+
+<body>
+    <h1>Price Estimation</h1>
+    <p>Sample Example enter:</p>
+    <ol>
+        <li>home_id:186</li>
+        
+<li>bed = 2</li>
+<li>bath = 2</li>
+<li>city = 714</li>
+<li>zipcode = 1687</li>
+<li>optional_attributes = {'finished_sqft': 1161, 'lot_size_sqft': 48941}</li>
+    <form action="/" method="post">
+        <label for="bed">Bedrooms:</label>
+        <input type="number" id="bed" name="bed" required><br><br>
+        <label for="bath">Bathrooms:</label>
+        <input type="number" id="bath" name="bath" required><br><br>
+        <label for="city">City:</label>
+        <input type="number" id="city" name="city" required><br><br>
+        <label for="zipcode">Zipcode:</label>
+        <input type="number" id="zipcode" name="zipcode" required><br><br>
+        <label for="finished_sqft">Finished Sqft:</label>
+        <input type="number" id="finished_sqft" name="finished_sqft" required><br><br>
+        <label for="lot_size_sqft">Lot Size Sqft:</label>
+        <input type="number" id="lot_size_sqft" name="lot_size_sqft" required><br><br>
+        <input type="submit" value="Estimate Price">
+    </form>
+    {% if estimated_price %}
+    <h2>Estimated Price: {{ estimated_price }}</h2>
+    {% endif %}
+</body>
+
+</html>
