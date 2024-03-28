@@ -71,7 +71,48 @@ estimated_price = estimate_price(home_id, bed, bath, city, zipcode, **optional_a
 print("Estimated Price:", estimated_price)
 
 
+#using linear regression
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.impute import SimpleImputer
 
+
+# Selecting relevant columns for the model
+features = ['bedrooms', 'bathrooms', 'city_market_id', 'zipcode_market_id']
+target = 'listing_price'
+
+# Combining both datasets to include sold homes in the training data
+df_sold_homes = df_home_info[df_home_info['status'] == 'SOLD']
+
+df_train = pd.concat([df_home_info, df_sold_homes])
+
+# Splitting the data into training and test sets
+X = df_train[features]
+y = df_train[target]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Handling missing values
+imputer = SimpleImputer(strategy='mean')
+X_train_imputed = imputer.fit_transform(X_train)
+X_test_imputed = imputer.transform(X_test)
+
+# Training the linear regression model
+model = LinearRegression()
+model.fit(X_train_imputed, y_train)
+
+# Making predictions
+y_pred = model.predict(X_test_imputed)
+
+# Calculating mean squared error
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
+
+# Example usage: Predicting the price of a new home
+new_home = pd.DataFrame([[2, 2, 714, 1687]], columns=['bedrooms', 'bathrooms', 'city_market_id', 'zipcode_market_id'])
+new_home_imputed = imputer.transform(new_home)
+predicted_price = model.predict(new_home_imputed)
+print(f"Predicted Price for New Home: {predicted_price}")
 
 
 conn.close()
