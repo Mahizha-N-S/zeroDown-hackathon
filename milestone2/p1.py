@@ -122,3 +122,7 @@ IQR = Q3 - Q1
 outliers = df[(df['finished_sqft'] < (Q1 - 1.5 * IQR)) | (df['finished_sqft'] > (Q3 + 1.5 * IQR))]
 print("Outliers in 'finished_sqft' column:")
 print(outliers)
+
+
+cur.close()
+conn.close()
