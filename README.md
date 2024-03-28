@@ -1,5 +1,5 @@
 # zeroDown-hackathon
-Problem Statement 1
+# Problem Statement 1
 PriceProbe: Predicting Property Values
 In the dynamic realm of US real estate, accurate pricing stands as the cornerstone of successful
 transactions. With the market constantly evolving and property values fluctuating, the ability to
@@ -30,3 +30,13 @@ Data:
 home_info.sql
 market.sql
 market_geom.sql
+
+# My Solution
+## Mile-Stone 1:
+ERD Diagram :
+- many-many -> home_info and market.
++ one to many -> market and market_info
+
+## Mile-Stone 2:
+
+
