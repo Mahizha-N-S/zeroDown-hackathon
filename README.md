@@ -32,11 +32,10 @@ market.sql
 market_geom.sql
 
 # My Solution
-## Mile-Stone 1:
-ERD Diagram :
-- many-many -> home_info and market.
-+ one to many -> market and market_info
++ Each milestone is put into separate folder along with the output docx
++ And a flak application is present in the folder display_all_output
++ to see the milestone 2, run the sol.py in your local host with http://127.0.0.1:5000/milestone2
++ and for next milestone 3, http://127.0.0.1:5000/milestone3
 
-## Mile-Stone 2:
 
 
