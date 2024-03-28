@@ -34,6 +34,8 @@ market_geom.sql
 # My Solution
 + Each milestone is put into separate folder along with the output docx
 + And a flak application is present in the folder display_all_output
++ run in your loaclhost the program sol.py
++ in sol.py we have buttons for each milestone , you can choose your needed milestone to view your output results
 + to see the milestone 2, run the sol.py in your local host with http://127.0.0.1:5000/milestone2
 + and for next milestone 3, http://127.0.0.1:5000/milestone3
 
