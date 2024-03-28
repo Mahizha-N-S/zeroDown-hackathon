@@ -1,0 +1,57 @@
+<!-- milestone4.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Comparables</title>
+</head>
+<body>
+    <h1>Home Comparables</h1>
+    <p>Sample Example enter:</p>
+    <ol>
+        <li>home_id:186</li>
+        
+<li>bed = 2</li>
+<li>bath = 2</li>
+<li>city = 714</li>
+<li>zipcode = 1687</li>
+<li>optional_attributes = {'finished_sqft': 1161, 'lot_size_sqft': 48941}</li>
+    </ol>
+    <form action="/milestone4" method="POST">
+        <label for="home_id">Home ID:</label>
+        <input type="text" id="home_id" name="home_id" required><br><br>
+
+        <label for="bed">Bedrooms:</label>
+        <input type="text" id="bed" name="bed" required><br><br>
+
+        <label for="bath">Bathrooms:</label>
+        <input type="text" id="bath" name="bath" required><br><br>
+
+        <label for="city">City Market ID:</label>
+        <input type="text" id="city" name="city" required><br><br>
+
+        <label for="zipcode">Zipcode Market ID:</label>
+        <input type="text" id="zipcode" name="zipcode" required><br><br>
+
+        <label for="finished_sqft">Finished Sqft:</label>
+        <input type="text" id="finished_sqft" name="finished_sqft"><br><br>
+
+        <label for="lot_size_sqft">Lot Size Sqft:</label>
+        <input type="text" id="lot_size_sqft" name="lot_size_sqft"><br><br>
+
+        <!-- Add other optional attribute inputs here -->
+
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if comparables %}
+    <h2>Similar Homes:</h2>
+    {{ comparables | safe }}
+
+    <h2>Total Similarity Histogram:</h2>
+    <img src="{{ histogram }}" alt="Histogram" width="800" height="400">
+    {% endif %}
+</body>
+</html>

@@ -12,9 +12,12 @@ from io import BytesIO
 
 app = Flask(__name__, template_folder='templates')
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/milestone2')
-def home1():
+def home2():
     conn = psycopg2.connect(host="localhost",dbname="zeroDown",user="postgres",password="mahizha",port=5432)
     cur = conn.cursor()
     
@@ -145,7 +148,7 @@ def home1():
 #-----------------------------------------------------------
 
 @app.route('/milestone3')
-def home2():
+def home3():
     #Absolute Duplicate Detection: homes are same as they are listed at the same time
     #Pseudo Duplicate Detection: dentify homes with similar attributes but listed at different points in time.
     import psycopg2
@@ -235,7 +238,104 @@ def home2():
 
     return render_template('duplicate.html', absolute_duplicates=absolute_duplicates, pseudo_duplicates=pseudo_duplicates)
     
+#---------------------------------------------------------------------------
+@app.route('/milestone4',methods=['GET','POST'])
+def home4():
+    from flask import Flask, render_template, request
+    import pandas as pd
+    import psycopg2
 
+    import matplotlib.pyplot as plt
+    from sklearn.metrics.pairwise import euclidean_distances
+    from scipy.spatial.distance import euclidean
+
+    def scale_similarity_score(total_similarity):
+        min_val = total_similarity.min()
+        max_val = total_similarity.max()
+        scaled_similarity = (total_similarity - min_val) / (max_val - min_val)
+        scaled_similarity *= 100
+        return scaled_similarity
+
+    def find_home_comparables(home_id, bed, bath, city, zipcode, **kwargs):
+        # PostgreSQL connection
+        conn = psycopg2.connect(host="localhost", dbname="zeroDown", user="postgres", password="mahizha", port=5432)
+        cur = conn.cursor()
+
+        query = "SELECT * FROM home_info;"
+        cur.execute(query)
+        rows = cur.fetchall()
+        df = pd.DataFrame(rows, columns=['id', 'listing_key', 'source_system', 'address', 'usps_address', 'status',
+                                         'listing_contract_date', 'on_market_date', 'pending_date', 'last_sold_date',
+                                         'off_market_date', 'original_listing_price', 'listing_price', 'last_sold_price',
+                                         'home_type', 'finished_sqft', 'lot_size_sqft', 'bedrooms', 'bathrooms',
+                                         'year_built', 'new_construction', 'has_pool', 'state_market_id', 'city_market_id',
+                                         'zipcode_market_id', 'neighborhood_level_1_market_id', 'neighborhood_level_2_market_id',
+                                         'neighborhood_level_3_market_id', 'long', 'lat', 'crawler'])
+
+        query = "SELECT * FROM market;"
+        cur.execute(query)
+        rows = cur.fetchall()
+        df_market = pd.DataFrame(rows, columns=['id', 'name', 'market_level', 'state', 'city', 'zipcode', 'neighborhood', 'neighborhood_source'])
+
+        query = "SELECT * FROM market_geom;"
+        cur.execute(query)
+        rows = cur.fetchall()
+        df_market_geom = pd.DataFrame(rows, columns=['id', 'market_id', 'longitude', 'latitude', 'geom', 'area_in_sq_mi', 'centroid_geom'])
+
+        total = []
+
+        if not all([bed, bath, city, zipcode]):
+            return "Mandatory inputs (bed, bath, city, zipcode) are required."
+
+        filtered_df = df[(df['bedrooms'] == bed) & (df['bathrooms'] == bath) & (df['city_market_id'] == city) & (df['zipcode_market_id'] == zipcode)]
+
+        for key, value in kwargs.items():
+            if key in df.columns:
+                # Convert to numeric type
+                filtered_df[key + '_similarity'] = abs(filtered_df[key].astype(float) - float(value))
+
+
+        filtered_df['total_similarity'] = filtered_df.filter(like='_similarity').sum(axis=1)
+        filtered_df['total_similarity_scaled'] = scale_similarity_score(filtered_df['total_similarity'])
+        comparable_homes = filtered_df.sort_values('total_similarity_scaled')[['id', 'bedrooms', 'bathrooms', 'city_market_id', 'zipcode_market_id', 'total_similarity_scaled']]
+        totals = filtered_df['total_similarity_scaled'].tolist()
+        
+        cur.close()
+        conn.close()
+        
+        return comparable_homes, totals
+
+    def generate_histogram(total):
+        plt.figure(figsize=(12, 6))
+        plt.hist(total, bins=10, range=(0, 100), color='skyblue', edgecolor='black')
+        plt.xlabel('Total Similarity (%)')
+        plt.ylabel('Frequency')
+        plt.title('Histogram of Total Similarity Values')
+        plt.grid(axis='y', alpha=0.75)
+        plt.xticks(range(0, 101, 10))
+        plt.tight_layout()
+        plt.savefig('static/histogram.png')
+        return 'static/histogram.png'
+
+    if request.method == 'POST':
+        home_id = request.form.get('home_id')
+        bed = request.form.get('bed')
+        bath = request.form.get('bath')
+        city = request.form.get('city')
+        zipcode = request.form.get('zipcode')
+        optional_attributes = {
+            'finished_sqft': request.form.get('finished_sqft'),
+            'lot_size_sqft': request.form.get('lot_size_sqft'),
+            # Add other optional attributes here
+        }
+        comparables, total = find_home_comparables(int(home_id), int(bed), int(bath), int(city), int(zipcode), **optional_attributes)
+        hist = generate_histogram(total)
+        print(f"Home ID: {home_id}, Bed: {bed}, Bath: {bath}, City: {city}, Zipcode: {zipcode}, Optional Attributes: {optional_attributes}")
+        return render_template('similarity.html', comparables=comparables.to_html(index=False), histogram=hist)
+    else:
+        return render_template('similarity.html', comparables=None, histogram=None)
+    
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
