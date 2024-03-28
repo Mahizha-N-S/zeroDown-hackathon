@@ -33,55 +33,42 @@ df_market_geom=pd.DataFrame(rows,columns=['id','market_id','longitude','latitude
 
 
 
-# Merge home and market data
-df_merged = pd.merge(df_home_info, df_market, left_on='city_market_id', right_on='id', how='inner')
-df_merged = pd.merge(df_merged, df_market_geom, on='market_id', how='inner')
+def estimate_price(home_id, bed, bath, city, zipcode, **kwargs):
+    # Load data of sold homes
+    # `df_sold_homes` contains the data of sold homes with columns ['bedrooms', 'bathrooms', 'city_market_id', 'zipcode_market_id', 'listing_price']
 
-# Prepare feature columns (mandatory inputs)
-features = ['bedrooms', 'bathrooms', 'city_market_id', 'zipcode_market_id']
+    # Filter sold homes based on mandatory inputs
+    filtered_homes = df_home_info[(df_home_info['bedrooms'] == bed) & 
+                                   (df_home_info['bathrooms'] == bath) & 
+                                   (df_home_info['city_market_id'] == city) & 
+                                   (df_home_info['zipcode_market_id'] == zipcode)]
 
-# Add optional input features if available
-optional_features = ['finished_sqft', 'lot_size_sqft', 'home_type']
-features.extend(optional_features)
+    # Filter further based on optional inputs
+    for key, value in kwargs.items():
+        if key in df_home_info.columns:
+            filtered_homes = filtered_homes[abs(filtered_homes[key] - value) <= 5]  # Assuming a tolerance of 5 for similarity
 
-# Remove rows with missing values in any of the feature columns
-df_merged = df_merged.dropna(subset=features)
+    # Calculate similarity score
+    filtered_homes['similarity_score'] = 1  # Placeholder for now, actual calculation needed
 
-# Use only the selected features
-X = df_merged[features]
+    # Calculate weighted average of listing prices
+    total_similarity = filtered_homes['similarity_score'].sum()
+    if total_similarity == 0:
+        return "No comparable homes found."
+    weighted_prices = filtered_homes['listing_price'] * filtered_homes['similarity_score']
+    estimated_price = weighted_prices.sum() / total_similarity
 
-# Target variable for price estimation
-y = df_merged['listing_price']
+    return estimated_price
 
-# Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Create a linear regression model
-model = LinearRegression()
-
-# Fit the model on the training data
-model.fit(X_train, y_train)
-
-# Predict prices on the test data
-y_pred = model.predict(X_test)
-
-# Calculate the mean squared error
-mse = mean_squared_error(y_test, y_pred)
-print("Mean Squared Error:", mse)
-
-# Example usage to estimate price for a new home
-new_home_features = {
-    'bedrooms': 3,
-    'bathrooms': 2,
-    'city_market_id': 714,
-    'zipcode_market_id': 1687,
-    'finished_sqft': 1500,
-    'lot_size_sqft': 6000,
-    'home_type': 'SingleFamilyResidence'
-}
-new_home_features_df = pd.DataFrame([new_home_features])
-predicted_price = model.predict(new_home_features_df)[0]
-print("Predicted Price for the New Home:", predicted_price)
+# Example Usage
+home_id = 186
+bed = 2
+bath = 2
+city = 714
+zipcode = 1687
+optional_attributes = {'finished_sqft': 1161, 'lot_size_sqft': 48941}
+estimated_price = estimate_price(home_id, bed, bath, city, zipcode, **optional_attributes)
+print("Estimated Price:", estimated_price)
 
 
 
